@@ -19,10 +19,6 @@ The full model achieves state‑of‑the‑art performance on multiple IQA bench
 - tqdm
 - pandas
 
-Install dependencies:
-```bash
-pip install torch torchvision open_clip_torch timm scikit-learn scipy tqdm pandas
-
 ## 📦 Pretrained Weights
 
 1. **DA‑CLIP controller** (frozen distortion prior extractor)  
@@ -77,3 +73,7 @@ python test.py --ckpt ./checkpoints/best_model.pth --dataset koniq
 📊 Results (on KonIQ-10k)
 Method	SRCC	PLCC	Trainable Params (M)
 DACA‑IQA (ours)	0.944	0.953	2.5
+
+Install dependencies:
+```bash
+pip install torch torchvision open_clip_torch timm scikit-learn scipy tqdm pandas

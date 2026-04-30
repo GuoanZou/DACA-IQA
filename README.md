@@ -24,8 +24,8 @@ Install dependencies:
 pip install torch torchvision open_clip_torch timm scikit-learn scipy tqdm pandas
 📦 Pretrained Weights
 DA‑CLIP controller (frozen distortion prior extractor)
-Download from DA‑CLIP repository or use our provided checkpoint.
-Place the file daclip_ViT-B-32_mix.pt under ./weights/.
+Download from DA‑CLIP repository.
+Place the file daclip_ViT-B-32.pt under ./weights/.
 
 CLIP ViT‑B/32 (backbone) – automatically downloaded by open_clip if not found.
 

@@ -1,8 +1,8 @@
 # DACA-IQA: Distortion-Aware Cross-Modal Adaptation for Image Quality Assessment
 
-DACA-IQA is a blind image quality assessment (BIQA) method built upon CLIP (ViT-B/32). It enhances CLIP’s distortion sensitivity via two lightweight modules:
+DACA-IQA is a blind image quality assessment (BIQA) method built upon CLIP (ViT-B/32). It enhances CLIP’s ability to assess images' quality accurately via two lightweight modules:
 
-- **Cross-Modal Mutual Modulation Adapter (CMMA)**: Low-rank bidirectional alignment between vision and text subspaces on the Grassmann manifold, with only 0.5M extra parameters.
+- **Cross-Modal Mutual Modulation Adapter (CMMA)**: Low-rank bidirectional modulation between vision and text features, with only 1M extra parameters.
 - **Distortion Prior Injection (DPI)**: Injects local distortion priors from a frozen DA-CLIP controller into every Transformer layer of CLIP’s visual encoder through low-rank cross-attention.
 
 The full model achieves state‑of‑the‑art performance on multiple IQA benchmarks (CSIQ, TID2013, KADID‑10k, BID, LIVEC, KonIQ‑10k, SPAQ) while training only **2.5M parameters**.

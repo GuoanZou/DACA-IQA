@@ -1,150 +1,67 @@
-# DACA-IQA: Degradation-Aware CLIP for Image Quality Assessment
+# DACA-IQA: Distortion-Aware Cross-Modal Adaptation for Image Quality Assessment
 
-DACA-IQA is a modular implementation of a degradation-aware image quality assessment model that combines CLIP with Cross-Modal Mutual Adaptation (CMMA) and DA-CLIP features.
+DACA-IQA is a blind image quality assessment (BIQA) method built upon CLIP (ViT-B/32). It enhances CLIP’s distortion sensitivity via two lightweight modules:
 
-## Architecture
+- **Cross-Modal Mutual Modulation Adapter (CMMA)**: Low-rank bidirectional alignment between vision and text subspaces on the Grassmann manifold, with only 0.5M extra parameters.
+- **Distortion Prior Injection (DPI)**: Injects local distortion priors from a frozen DA-CLIP controller into every Transformer layer of CLIP’s visual encoder through low-rank cross-attention.
 
-The model consists of three main components:
+The full model achieves state‑of‑the‑art performance on multiple IQA benchmarks (CSIQ, TID2013, KADID‑10k, BID, LIVEC, KonIQ‑10k, SPAQ) while training only **2.5M parameters**.
 
-1. **CLIP with CMMA**: Vision-language model with trainable cross-modal mutual adaptation via Gram matrices
-2. **DA-CLIP**: Frozen degradation-aware feature extractor providing patch-level degradation information
-3. **DPIM (Dynamic Prompt Interaction Module)**: Cross-attention based module that injects DA-CLIP features into the main model
+## 🔧 Requirements
 
-## Installation
+- Python 3.8+
+- PyTorch 1.12+
+- torchvision
+- open_clip_torch
+- timm
+- scikit‑learn
+- scipy
+- tqdm
+- pandas
 
+Install dependencies:
 ```bash
-pip install torch torchvision
-pip install clip open_clip_torch
-pip install pandas pillow tqdm
-```
+pip install torch torchvision open_clip_torch timm scikit-learn scipy tqdm pandas
+📦 Pretrained Weights
+DA‑CLIP controller (frozen distortion prior extractor)
+Download from DA‑CLIP repository or use our provided checkpoint.
+Place the file daclip_ViT-B-32_mix.pt under ./weights/.
 
-## Project Structure
+CLIP ViT‑B/32 (backbone) – automatically downloaded by open_clip if not found.
 
-```
-DACA-IQA/
-├── models/
-│   ├── daca_iqa.py          # Main model implementation
-│   ├── dpim.py              # Dynamic Prompt Interaction Module
-│   └── clip_with_cmma.py    # CLIP with Cross-Modal Mutual Adaptation
-├── datasets/
-│   └── image_dataset.py     # Dataset loaders for various IQA benchmarks
-├── losses/
-│   └── mnl_loss.py          # Loss functions (KL+Rank, Ordinal, etc.)
-├── utils/
-│   └── data_utils.py        # Data loading utilities
-└── __init__.py
-```
+🚀 Quick Start
+1. Clone repository
 
-## Usage
+git clone https://github.com/ZouGuoAn/DACA-IQA.git
+cd DACA-IQA
+2. Prepare datasets
+Organise each IQA dataset as follows (example for KonIQ‑10k):
 
-### Basic Usage
+data/
+└── KonIQ-10k/
+    ├── 1024x768/
+    │   └── *.jpg
+    └── koniq_train.csv
+    └── koniq_test.csv
+CSV files must contain columns image_name and mos (and optionally std for variance).
+For datasets without variance, you can set a default value (e.g., std=0.5).
 
-```python
-from DACA_IQA import DACA_IQA
-import torch
+3. Training
+Example training on KonIQ‑10k:
 
-# Initialize model
-model = DACA_IQA(
-    clip_model_name="ViT-B/32",
-    device='cuda:0',
-    subimage_num=16,
-    gram_rank=32,
-    gram_alpha=0.1,
-    daclip_ckpt='path/to/daclip_weights.pt',
-    latent_dim=96,
-    cross_attn_heads=8
-)
+python train.py --dataset koniq --data_root ./data/KonIQ-10k --batch_size 16 --epochs 100 --lr 1e-3
+Arguments:
 
-# Forward pass
-# x: [B, P, 3, 224, 224] where P is number of patches
-quality_scores, probs, text_features = model(x)
-```
+--dataset : koniq, tid2013, kadid, livec, spaq, etc.
 
-### Training Example
+--daclip_ckpt : path to DA‑CLIP .pt file (default ./weights/daclip_ViT-B-32_mix.pt)
 
-```python
-from DACA_IQA.losses import kl_rank_loss, ordinal_loss
-from DACA_IQA.utils import set_spaq1
+--pretrained_clip : use CLIP ViT‑B/32 (default)
 
-# Setup dataset
-train_loader = set_spaq1(
-    csv_file='train.xlsx',
-    bs=8,
-    data_set='path/to/images',
-    num_workers=4,
-    preprocess=preprocess,
-    num_patch=16,
-    test=False,
-    soft_labels_csv='soft_labels.csv'
-)
+4. Evaluation
+Evaluate a trained model on test split:
 
-# Training loop
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
-
-for batch in train_loader:
-    images = batch['I'].to(device)
-    mos = batch['mos'].to(device)
-    soft_labels = batch['soft_labels'].to(device)
-    
-    quality, probs, text_feats = model(images)
-    
-    # Combined loss
-    loss_kl_rank = kl_rank_loss(quality, probs, mos, soft_labels, lambda_rank=1.0)
-    loss_ordinal = ordinal_loss(text_feats, margin=0.1)
-    loss = loss_kl_rank + 0.1 * loss_ordinal
-    
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
-```
-
-## Model Components
-
-### DACA_IQA
-
-Main model class that integrates all components.
-
-**Parameters:**
-- `clip_ckpt`: Path to pretrained CLIP checkpoint (optional)
-- `device`: Device to run on ('cuda:0' or 'cpu')
-- `clip_model_name`: CLIP architecture ('ViT-B/32', 'ViT-B/16', etc.)
-- `n_ctx`: Number of context tokens for prompt learning (default: 10)
-- `subimage_num`: Number of patches per image (default: 16)
-- `gram_rank`: Rank for Gram matrix adaptation (default: 32)
-- `gram_alpha`: Initial alpha value for CMMA (default: 0.1)
-- `csc`: Class-specific context for prompts (default: True)
-- `daclip_ckpt`: Path to DA-CLIP checkpoint
-- `latent_dim`: Latent dimension for DPIM (default: 96)
-- `cross_attn_heads`: Number of attention heads in DPIM (default: 8)
-
-### DPIM
-
-Dynamic Prompt Interaction Module that injects degradation features via cross-attention.
-
-**Key Features:**
-- Layer-wise feature injection
-- Low-dimensional latent space for efficiency
-- Learnable scale factors per layer
-
-### Loss Functions
-
-- `kl_rank_loss`: Combined KL divergence and pairwise ranking loss
-- `ordinal_loss`: Ordinal constraint on text embeddings
-- `Fidelity_Loss`: Fidelity-based loss for probability distributions
-
-## Supported Datasets
-
-The package includes loaders for:
-- SPAQ (Smartphone Photography Attribute and Quality)
-- TID2013
-- PIPAL
-- AVA (Aesthetic Visual Analysis)
-- Custom datasets with soft labels
-
-## Citation
-
-If you use this code in your research, please cite the relevant papers for CLIP, DA-CLIP, and the quality assessment methodology.
-
-## License
-
-This implementation is provided for research purposes.
+python test.py --ckpt ./checkpoints/best_model.pth --dataset koniq
+📊 Results (on KonIQ-10k)
+Method	SRCC	PLCC	Trainable Params (M)
+DACA‑IQA (ours)	0.944	0.953	2.5

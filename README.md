@@ -22,11 +22,27 @@ The full model achieves state‑of‑the‑art performance on multiple IQA bench
 Install dependencies:
 ```bash
 pip install torch torchvision open_clip_torch timm scikit-learn scipy tqdm pandas
-📦 Pretrained Weights
-DA‑CLIP controller (frozen distortion prior extractor)
-Download from DA‑CLIP repository.
-Place the file daclip_ViT-B-32.pt under ./weights/.
 
+## 📦 Pretrained Weights
+
+1. **DA‑CLIP controller** (frozen distortion prior extractor)  
+   Download from [DA‑CLIP repository](https://github.com/Algolzw/daclip-uir) or use our provided checkpoint.  
+   Place the file `daclip_ViT-B-32_mix.pt` under `./weights/`.
+
+2. **CLIP ViT‑B/32** (backbone) – automatically downloaded by `open_clip` if not found.
+
+## 📊 Soft Label Preparation (for KL divergence loss)
+
+Our method uses ground‑truth quality level distributions (soft labels) derived from the mean opinion score (MOS) and standard deviation of each image. We adopt the same soft label construction strategy as [DeQA‑Score](https://github.com/zhiyuanyou/DeQA-Score).
+
+1. Download the JSON files containing MOS and standard deviation for each dataset from the [DeQA‑Score repository](https://github.com/zhiyuanyou/DeQA-Score/tree/main/data). The files are typically named like `koniq_softlabels_pdf.csv` or similar.
+2. Place them under `./soft_labels/` (create this folder if it does not exist).  
+   The CSV files should contain at least three columns: `image_name`, `mos`, and `std` (or `sigma`). If your dataset does not provide standard deviation, you can set a default value (e.g., 0.5) as described in the DeQA‑Score paper.
+
+During training, our dataloader will read these CSV files to compute the soft label for each image (Gaussian integration + linear adjustment). No additional manual annotation is required.
+
+## 🚀 Quick Start
+...
 CLIP ViT‑B/32 (backbone) – automatically downloaded by open_clip if not found.
 
 🚀 Quick Start

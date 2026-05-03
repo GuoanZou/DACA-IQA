@@ -22,7 +22,7 @@ The full model achieves state‑of‑the‑art performance on multiple IQA bench
 ## 📦 Pretrained Weights
 
 1. **DA‑CLIP controller** (frozen distortion prior extractor)  
-   Download from [DA‑CLIP repository](https://github.com/Algolzw/daclip-uir) or use our provided checkpoint.  
+   Download from [DA‑CLIP repository](https://github.com/Algolzw/daclip-uir) and use provided checkpoint.  
    Place the file `daclip_ViT-B-32.pt` under `./pretrained_weights/`.
 
 2. **CLIP ViT‑B/32** (backbone) – automatically downloaded by `open_clip` if not found.

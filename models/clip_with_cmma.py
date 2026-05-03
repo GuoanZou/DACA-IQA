@@ -1,5 +1,5 @@
 """
-CLIP with CMMA (Cross-Modal Mutual Adaptation)
+CLIP with CMMA (Cross-Modal Mutual Modulation)
 
 CLIP model with trainable cross-modal mutual adaptation via Gram matrices.
 Each ResidualAttentionBlock has independent trainable alpha parameters.

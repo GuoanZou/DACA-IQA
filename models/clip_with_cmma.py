@@ -352,7 +352,7 @@ class CLIP(nn.Module):
         self.num_layers = num_layers
         self.gram_rank = gram_rank
 
-        # Gram adapter 参数 (与原版一致)
+        # definition of Gram matrices 
         self.S_vis_attn = nn.ParameterList([
             nn.Parameter(torch.randn(vision_width, gram_rank) * 0.02)
             for _ in range(num_layers)
@@ -486,10 +486,6 @@ class CLIP(nn.Module):
         logits_per_text = logits_per_image.t()
         return logits_per_image, logits_per_text
 
-
-# ---------------------------------------------------------------------------
-# 以下未改动部分（与 clip_gram_mslr.py 保持一致）
-# ---------------------------------------------------------------------------
 
 class ModifiedResNet(nn.Module):
     def __init__(self, layers, output_dim, heads, input_resolution=224, width=64):

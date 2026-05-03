@@ -1,10 +1,10 @@
 """
-DACA-IQA: Degradation-Aware CLIP for Image Quality Assessment
+DACA-IQA: Degradation-Aware Cross-modal Adaption for Image Quality Assessment
 
 Main model implementation that combines:
 - CLIP with CMMA (Cross-Modal Mutual Adaptation)
-- DA-CLIP for degradation-aware features
-- DPIM (Dynamic Prompt Interaction Module) for feature injection
+- DA-CLIP image controller for degradation prior extractor
+- DPIM for feature injection
 """
 
 import torch
@@ -24,7 +24,7 @@ qualitys = ['bad', 'poor', 'fair', 'good', 'excellent']
 class PromptLearner(nn.Module):
     """Learnable prompt generator for quality assessment"""
 
-    def __init__(self, classnames: List[str], clip_model, n_ctx: int = 10, csc: bool = False):
+    def __init__(self, classnames: List[str], clip_model, n_ctx: int = 12, csc: bool = False):
         super().__init__()
         n_cls = len(classnames)
         ctx_dim = clip_model.ln_final.weight.shape[0]
@@ -91,7 +91,7 @@ class TextEncoder(nn.Module):
 
 class DACA_IQA(nn.Module):
     """
-    DACA-IQA: Degradation-Aware CLIP for Image Quality Assessment
+    DACA-IQA: Degradation-Aware Cross-modal Adaption for Image Quality Assessment
 
     Integrates DA-CLIP patch tokens via DPIM for degradation-aware quality prediction.
     """
@@ -140,7 +140,7 @@ class DACA_IQA(nn.Module):
         else:
             self.daclip = None
 
-        # DPIM: Dynamic Prompt Interaction Module
+        # DPIM
         vision_layers = self.model.visual.transformer.layers
         embed_dim = 768
         self.dpim = DPIM(
@@ -150,7 +150,7 @@ class DACA_IQA(nn.Module):
             num_heads=cross_attn_heads
         )
 
-        # Prompt learner
+        # Prompt learner(CoOp)
         self.prompt_learner = PromptLearner(
             classnames=qualitys,
             clip_model=self.model,

@@ -1,7 +1,7 @@
 """
-DPIM: Dynamic Prompt Interaction Module
+DPIM: Distortion Prior Injection Module
 
-Injects DA-CLIP degradation-aware features into the main model via cross-attention.
+Injects DA-CLIP degradation-aware features into the main model via low-rank cross-attention.
 """
 
 import torch

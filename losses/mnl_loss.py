@@ -175,7 +175,7 @@ def kl_rank_loss(y_pred, probs_pred, y, soft_labels, lambda_rank=1.0):
     Returns:
         总损失（标量）
     """
-    # ---------- 1. 确保分数为一维 ----------
+    # 1. 确保分数为一维 
     if y_pred.dim() > 1:
         y_pred = y_pred.reshape(-1)
     if y.dim() > 1:
@@ -183,13 +183,13 @@ def kl_rank_loss(y_pred, probs_pred, y, soft_labels, lambda_rank=1.0):
     y = y.detach().float()
     N = y_pred.shape[0]
 
-    # ---------- 2. 分数标准化（保留原逻辑）----------
+    # 2. 分数标准化-
     sigma_hat, m_hat = torch.std_mean(y_pred, unbiased=False)
     y_pred_norm = (y_pred - m_hat) / (sigma_hat + 1e-8)
     sigma, m = torch.std_mean(y, unbiased=False)
     y_norm = (y - m) / (sigma + 1e-8)
 
-    # ---------- 3. 成对排序损失（内嵌实现）----------
+    # 3. 成对排序损失（内嵌实现
     if N >= 2:
         # 差值矩阵
         pred_diff = y_pred_norm[:, None] - y_pred_norm[None, :]  # [N, N]
@@ -207,7 +207,7 @@ def kl_rank_loss(y_pred, probs_pred, y, soft_labels, lambda_rank=1.0):
     else:
         rank_loss = torch.tensor(0.0, device=y_pred.device)
 
-    # ---------- 4. KL 散度损失 ----------
+    # 4. KL 散度损失
     eps = 1e-8
     kl_div = F.kl_div(
         torch.log(probs_pred + eps),
@@ -215,7 +215,7 @@ def kl_rank_loss(y_pred, probs_pred, y, soft_labels, lambda_rank=1.0):
         reduction='batchmean'
     )
 
-    # ---------- 5. 总损失 ----------
+    # 5. 总损失
     total_loss = kl_div + lambda_rank * rank_loss
     return total_loss   
 
